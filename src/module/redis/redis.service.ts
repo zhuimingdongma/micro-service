@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { RedisClientType } from '@redis/client';
 import { createClient } from 'redis';
 import RedisJsonModule from '@redis/json';
-import Utils from 'src/common/tools';
+import Utils from '@/common/tools/index';
 
 export type RedisCommandArgument = string | Buffer;
 export type RedisCommandArguments = Array<RedisCommandArgument> & {
@@ -60,8 +60,8 @@ export class RedisService {
     return result;
   }
 
-  public async get(key: string, expire: number = 5) {
-    await this.client.expire(key, expire!);
+  public async get(key: string, expire?: number) {
+    if (expire) await this.client.expire(key, expire!);
     return await this.client.get(key);
   }
 
@@ -69,7 +69,7 @@ export class RedisService {
     return await this.client.del(key);
   }
 
-  public async gatherSmembers(key: string, expire: number = 5) {
+  public async gatherSmembers(key: string, expire?: number) {
     await this.client.expire(key, expire!);
     return await this.client.sMembers(key);
   }

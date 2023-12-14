@@ -42,19 +42,19 @@ export default class Utils {
    * @param len 生成随机字符长度
    * @returns
    */
-  public async generateCode(to: string, len: number = 32) {
+  public async generateCode(to: string, len: number = 32, template: string) {
     const chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678';
     let result = '';
     for (let index = 0; index < len; index++) {
       result += chars.charAt(Math.floor(Math.random() * len));
     }
     const code = Buffer.from(result).toString('base64');
-    await this.redisService.set(`${to}_code`, code);
-    await this.redisService.expire(`${to}_code`, 600);
+    await this.redisService.set(`${to}_${template}_code`, code);
+    await this.redisService.expire(`${to}_${template}_code`, 600);
     return this.encrypt(code);
   }
 
-  private encrypt(data, keys?: string, ivs?: string) {
+  public encrypt(data, keys?: string, ivs?: string) {
     const key = this.crypto.enc.Utf8.parse(keys || this.key);
     const iv = this.crypto.enc.Utf8.parse(ivs || this.iv);
     const src = this.crypto.enc.Utf8.parse(data);
@@ -65,14 +65,13 @@ export default class Utils {
     }).toString();
   }
 
-  private decrypt(data, keys?: string, ivs?: string) {
+  public decrypt(data, keys?: string, ivs?: string) {
     const key = this.crypto.enc.Utf8.parse(keys || this.key);
     const iv = this.crypto.enc.Utf8.parse(ivs || this.iv);
-    const src = this.crypto.enc.Utf8.parse(data);
-    return this.crypto.DES.decrypt(src, key, {
+    return this.crypto.DES.decrypt(data, key, {
       iv,
       mode: this.crypto.mode.CBC,
       padding: this.crypto.pad.Pkcs7,
-    }).toString();
+    }).toString(this.crypto.enc.Utf8);
   }
 }
